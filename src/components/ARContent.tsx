@@ -9,27 +9,19 @@ type ModelData = {
   scale: number;
 };
 
-const MODELS = {
-  duck: {
-    url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb",
-    scale: 0.05,
-  },
-  lion: {
-    url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Lion/glTF-Binary/Lion.glb",
-    scale: 0.02,
-  },
-  fox: {
-    url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Fox/glTF-Binary/Fox.glb",
-    scale: 0.03,
-  },
+type ARContentProps = {
+  selectedModel: {
+    id: number;
+    title: string;
+    url: string;
+    scale: number;
+  };
 };
 
-export default function ARContent() {
+export default function ARContent({ selectedModel }: ARContentProps) {
   const reticleRef = useRef<THREE.Mesh>(null);
   const tempMatrix = new THREE.Matrix4();
   const [models, setModels] = useState<ModelData[]>([]);
-  const [selectedModel, setSelectedModel] =
-    useState<keyof typeof MODELS>("duck");
 
   // hook thực hiện hit test để phát hiện mặt phẳng
   useXRHitTest((hitTestResults, getHitPoseMatrix) => {
@@ -66,8 +58,9 @@ export default function ARContent() {
         setModels((prev) => [
           ...prev,
           {
-            url: MODELS[selectedModel].url,
-            scale: MODELS[selectedModel].scale,
+            id: selectedModel.id,
+            url: selectedModel.url,
+            scale: selectedModel.scale,
             position: [pos.x, pos.y, pos.z],
           },
         ]);
@@ -94,12 +87,15 @@ export default function ARContent() {
       </mesh>
 
       {models.map((model, index) => (
-        <ModelLoader
+        <mesh
           key={index}
-          url={model.url}
           position={model.position}
-          scale={model.scale}
-        />
+          onDoubleClick={() => {
+            setModels((prev) => prev.filter((_, i) => i !== index));
+          }}
+        >
+          <ModelLoader key={index} url={model.url} scale={model.scale} />
+        </mesh>
       ))}
     </>
   );
